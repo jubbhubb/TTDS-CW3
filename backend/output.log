@@ -1,0 +1,80 @@
+[nltk_data] Downloading package stopwords to /home/mantas/nltk_data...
+[nltk_data]   Package stopwords is already up-to-date!
+Loaded phoneme index from pickle: phoneme_index.pkl
+First run — importing CSVs
+
+📥 Phase 1: Importing CSV → SQLite...
+  Imported 1,000 songs (scanned 1,002 rows)  Imported 2,000 songs (scanned 2,005 rows)  Imported 3,000 songs (scanned 3,021 rows)  Imported 4,000 songs (scanned 4,048 rows)Traceback (most recent call last):
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.OperationalError: could not receive data from server: Network is unreachable
+SSL SYSCALL error: Network is unreachable
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/main.py", line 137, in <module>
+    main()
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/main.py", line 27, in main
+    engine.import_csv(csv_path_en, language_filter="en", save_index=False, rebuild=False)
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/engine.py", line 74, in import_csv
+    imported = self.repository.import_csv(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/repository/document_repo.py", line 301, in import_csv
+    self.add_many(batch)
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/repository/document_repo.py", line 87, in add_many
+    session.merge(doc)
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 3939, in merge
+    self._autoflush()
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 3051, in _autoflush
+    raise e.with_traceback(sys.exc_info()[2])
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 3040, in _autoflush
+    self.flush()
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4331, in flush
+    self._flush(objects)
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4466, in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4427, in _flush
+    flush_context.execute()
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 1048, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/mantas/Documents/University/TTDS/TTDS-CW3/backend/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(psycopg2.OperationalError) could not receive data from server: Network is unreachable
+SSL SYSCALL error: Network is unreachable
+
+[SQL: INSERT INTO documents (id, title, content, artist, tag, year, views, features, language, language_cld3, language_ft) VALUES (%(id)s, %(title)s, %(content)s, %(artist)s, %(tag)s, %(year)s, %(views)s, %(features)s, %(language)s, %(language_cld3)s, %(language_ft)s)]
+[parameters: {'id': '4996', 'title': 'Bed Rock Asian Remix', 'content': "[Verse 1: Illmillion]\nIt was back when, we was in the stone age\nI was just a no-name, who clearly had no game\nShe was beautiful and had me suicida ... (4578 characters truncated) ... can make your bed rock\n(Ooh) I-I-I-I can make your bed rock, girl\n(Ooh) I-I-I-I can make your bed rock\n(Ooh) I-I-I-I can make your bed rock (Ayy!)", 'artist': 'Tim Chantarangsu', 'tag': 'rap', 'year': 2009, 'views': 14516, 'features': '{Illmillion,"Lil Crazed","Dee (NLD)",Phlip,"Trixx (Rap)","Tommy C"}', 'language': 'en', 'language_cld3': 'en', 'language_ft': 'en'}]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)

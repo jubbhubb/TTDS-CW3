@@ -1,0 +1,13 @@
+:{$PORT} {
+    # Reverse proxy API requests to the Python backend
+    handle /api/* {
+        reverse_proxy 127.0.0.1:5000
+    }
+
+    # Serve static files for the frontend
+    handle {
+        root * /app/frontend/dist
+        try_files {path} {path}/ /index.html
+        file_server
+    }
+}
