@@ -19,57 +19,127 @@ class DocumentRepository:
     Supports importing from your song lyrics CSV.
     """
 
+    # def __init__(self):
+    #     """
+    #     Initialise the repository.
+
+    #     Args:
+    #         db_path: Path to SQLite database file.
+    #                  Use ":memory:" for an in-memory database (default).
+    #                  Use a file path like "songs.db" for persistence.
+    #     """
+        
+    #     # Load environment variables from .env file (if present)
+    #     try:
+    #         from dotenv import load_dotenv
+    #         load_dotenv()
+    #     except ImportError:
+    #         pass
+            
+    #     # Check for Google Cloud PostgreSQL credentials in environment
+    #     db_path = ":memory"
+    #     db_user = os.environ.get("GOOGLE_DB_USER")
+    #     db_password = os.environ.get("GOOGLE_DB_PASSWORD")
+    #     db_host = os.environ.get("GOOGLE_DB_HOST")
+    #     db_port = os.environ.get("GOOGLE_DB_PORT", "5432")
+    #     db_name = os.environ.get("GOOGLE_DB_NAME", "postgres")
+
+    #     # Configure database URL (Google Cloud is default if credentials exist)
+    #     if db_user and db_password and db_host:
+    #         # We have PostgreSQL credentials
+    #         db_password = db_password.strip('"').strip("'")
+    #         encoded_pwd = urllib.parse.quote_plus(db_password)
+    #         db_url = f"postgresql+psycopg2://{db_user}:{encoded_pwd}@{db_host}:{db_port}/{db_name}"
+    #         print(f"☁️  Connecting to Google Cloud PostgreSQL at {db_host}...")
+    #     elif db_path == ":memory:":
+    #         db_url = "sqlite://"
+    #         print("💾 Connecting to Local SQLite (in-memory)...")
+    #     else:
+    #         # Ensure absolute path or correct relative path handling
+    #         # SQLAlchemy needs 3 slashes for relative, 4 for absolute
+    #         db_url = f"sqlite:///{db_path}"
+    #         print(f"💾 Connecting to Local SQLite ({db_path})...")
+
+    #     self.engine = create_engine(db_url)
+        
+    #     # Create tables
+    #     Base.metadata.create_all(self.engine)
+        
+    #     # Create session factory
+    #     # check_same_thread=False equivalent is handled by session scoping or pool management
+    #     # For SQLite with multithreading, we generally want scoped sessions or careful management
+    #     self._session_factory = sessionmaker(bind=self.engine)
+    #     self._Session = scoped_session(self._session_factory)
+        
+    #     self._lock = threading.Lock()
+
     def __init__(self):
         """
         Initialise the repository.
-
-        Args:
-            db_path: Path to SQLite database file.
-                     Use ":memory:" for an in-memory database (default).
-                     Use a file path like "songs.db" for persistence.
+        
+        Automatically detects the environment:
+        1. If Google Cloud SQL Socket is provided -> Connects via Unix Socket (Production).
+        2. If Postgres Host is provided -> Connects via TCP (Local/Staging).
+        3. Otherwise -> Falls back to Local SQLite.
         """
         
-        # Load environment variables from .env file (if present)
+        # 1. Load environment variables
         try:
             from dotenv import load_dotenv
             load_dotenv()
         except ImportError:
             pass
             
-        # Check for Google Cloud PostgreSQL credentials in environment
+        # 2. Get Credentials from Environment
         db_user = os.environ.get("GOOGLE_DB_USER")
         db_password = os.environ.get("GOOGLE_DB_PASSWORD")
+        db_name = os.environ.get("GOOGLE_DB_NAME", "postgres")
+        
+        # Networking parameters
         db_host = os.environ.get("GOOGLE_DB_HOST")
         db_port = os.environ.get("GOOGLE_DB_PORT", "5432")
-        db_name = os.environ.get("GOOGLE_DB_NAME", "postgres")
+        unix_socket_path = os.environ.get("INSTANCE_UNIX_SOCKET") # e.g. /cloudsql/project:region:instance
 
-        # Configure database URL (Google Cloud is default if credentials exist)
-        if db_user and db_password and db_host:
-            # We have PostgreSQL credentials
-            db_password = db_password.strip('"').strip("'")
-            encoded_pwd = urllib.parse.quote_plus(db_password)
+        # 3. Determine Database URL
+        if db_user and db_password and unix_socket_path:
+            # --- PRODUCTION: Google Cloud Run to Cloud SQL ---
+            # Clean password and encode for URL safety
+            clean_pwd = db_password.strip("'").strip('"')
+            encoded_pwd = urllib.parse.quote_plus(clean_pwd)
+            
+            # SQLAlchemy connection string for Unix Sockets
+            db_url = f"postgresql+psycopg2://{db_user}:{encoded_pwd}@/{db_name}?host={unix_socket_path}"
+            print(f"☁️  Connecting to Google Cloud SQL via Unix Socket: {unix_socket_path}...")
+
+        elif db_user and db_password and db_host:
+            # --- LOCAL/DEVELOPMENT: Standard PostgreSQL ---
+            clean_pwd = db_password.strip("'").strip('"')
+            encoded_pwd = urllib.parse.quote_plus(clean_pwd)
+            
             db_url = f"postgresql+psycopg2://{db_user}:{encoded_pwd}@{db_host}:{db_port}/{db_name}"
-            print(f"☁️  Connecting to Google Cloud PostgreSQL at {db_host}...")
-        elif db_path == ":memory:":
-            db_url = "sqlite://"
-            print("💾 Connecting to Local SQLite (in-memory)...")
+            print(f"🌍 Connecting to PostgreSQL Host: {db_host}...")
+
         else:
-            # Ensure absolute path or correct relative path handling
-            # SQLAlchemy needs 3 slashes for relative, 4 for absolute
+            # --- FALLBACK: SQLite ---
+            db_path = os.environ.get("SQLITE_PATH", "songs.db")
             db_url = f"sqlite:///{db_path}"
             print(f"💾 Connecting to Local SQLite ({db_path})...")
 
-        self.engine = create_engine(db_url)
+        # 4. Initialize SQLAlchemy Engine
+        # 'pool_pre_ping' is highly recommended for cloud connections to handle timeouts
+        self.engine = create_engine(
+            db_url, 
+            pool_pre_ping=True,
+            pool_size=5,
+            max_overflow=10
+        )
         
-        # Create tables
+        # 5. Create tables if they don't exist
         Base.metadata.create_all(self.engine)
         
-        # Create session factory
-        # check_same_thread=False equivalent is handled by session scoping or pool management
-        # For SQLite with multithreading, we generally want scoped sessions or careful management
+        # 6. Setup Thread-Safe Sessions
         self._session_factory = sessionmaker(bind=self.engine)
         self._Session = scoped_session(self._session_factory)
-        
         self._lock = threading.Lock()
 
     # ── Core CRUD ────────────────────────────────────────────

@@ -16,7 +16,9 @@ def main():
     # csv_path_en = sys.argv[1] if len(sys.argv) > 1 else str(BASE / "songs_en.csv")
     # csv_path_es = sys.argv[2] if len(sys.argv) > 2 else str(BASE / "songs_es.csv")
 
-    engine = SearchEngine(db_path="songs.db", index_dir_en="search_index_en", index_dir_es="search_index_es")
+    # db_path="songs.db",
+
+    engine = SearchEngine( index_dir_en="search_index_en", index_dir_es="search_index_es")
 
     en_ready = engine.index_en.doc_count > 0
     es_ready = engine.index_es.doc_count > 0
@@ -77,9 +79,9 @@ def main():
         start = time.perf_counter()
         #-------------------------------add is spanish tag that will go to engine--------#
         if language == 'es':
-            results = engine.search(query, top_k=5, mode=mode, query_language='es')
+            results = engine.search(query, top_k=5, mode=mode, isSpanish = True)
         else:
-            results = engine.search(query, top_k=5, mode=mode, query_language='en')
+            results = engine.search(query, top_k=5, mode=mode, isSpanish = False)
         #-------------------------------------------------------------------------------#
         elapsed_ms = (time.perf_counter() - start) * 1000
 
