@@ -82,7 +82,7 @@ class DocumentRepository:
         2. If Postgres Host is provided -> Connects via TCP (Local/Staging).
         3. Otherwise -> Falls back to Local SQLite.
         """
-        
+        print('We in document repo init')
         # 1. Load environment variables
         try:
             from dotenv import load_dotenv
@@ -125,6 +125,8 @@ class DocumentRepository:
             db_url = f"sqlite:///{db_path}"
             print(f"💾 Connecting to Local SQLite ({db_path})...")
 
+        print(f"self.engine = create_engine({db_url}, pool_pre_ping=True, pool_size=5, max_overflow=10)") 
+
         # 4. Initialize SQLAlchemy Engine
         # 'pool_pre_ping' is highly recommended for cloud connections to handle timeouts
         self.engine = create_engine(
@@ -141,7 +143,7 @@ class DocumentRepository:
         self._session_factory = sessionmaker(bind=self.engine)
         self._Session = scoped_session(self._session_factory)
         self._lock = threading.Lock()
-
+        print("✅ DocumentRepository initialized successfully.")
     # ── Core CRUD ────────────────────────────────────────────
 
     def add(self, doc: Document) -> None:

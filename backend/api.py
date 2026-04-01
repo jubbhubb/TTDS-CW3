@@ -45,13 +45,26 @@ def create_app(
 
     index_dir_en = f"{index_dir}_en"
     index_dir_es = f"{index_dir}_es"
+
+    print(f"📂 Initializing Search Engine with index directories:"
+          f"\n   English: {index_dir_en}"
+          f"\n   Spanish: {index_dir_es}")
     engine = SearchEngine(index_dir_en=index_dir_en, index_dir_es=index_dir_es)
 
-    if engine.repository.count() > 0:
-        print(f"📥 Rebuilding index from database...")
+    en_ready = engine.index_en.doc_count > 0
+    es_ready = engine.index_es.doc_count > 0
+    print(f"EN index: {engine.index_en.doc_count:,} docs")
+    print(f"ES index: {engine.index_es.doc_count:,} docs")
+
+    indexed_docs = engine.index_en.doc_count + engine.index_es.doc_count
+
+    # 2. Only rebuild if the database has songs AND the index is empty (0 docs)
+    if engine.repository.count() > 0 and indexed_docs == 0:
+        print(f"📥 Index is empty. Rebuilding from database...")
         engine.rebuild_index()
         engine.save_index()
 
+        # Update the counts after the rebuild
         indexed_docs = engine.index_en.doc_count + engine.index_es.doc_count
         indexed_terms = engine.index_en.num_terms + engine.index_es.num_terms
         print(f"✅ Index rebuilt ({indexed_docs:,} docs, {indexed_terms:,} terms)")
@@ -111,8 +124,8 @@ def create_app(
         filter_language = request.args.get("language")
 
         filters = {}
-        if query_language:
-            filters["query_language"] = query_language
+        if query_language == "es":
+            filters["is_Spanish"] = True
         if filter_language:
             filters["filter_language"] = filter_language
         if request.args.get("artist"):
@@ -131,23 +144,24 @@ def create_app(
             "found": len(results),
             "search_time_ms": round(search_time_ms, 2),
             "hits": [
-                {
-                    "id": r.document.id,
-                    "score": round(r.score, 4),
-                    "proximity_score": round(r.proximity_score, 4),
-                    "phrase_matched": r.phrase_matched,
-                    "document": {
-                        "title": r.document.title,
-                        "artist": r.document.artist,
-                        "tag": r.document.tag,
-                        "year": r.document.year,
-                        "views": r.document.views,
-                        "features": r.document.features,
-                        "language": r.document.language,
-                        "lyrics_preview": r.document.short_lyrics(200),
-                    },
-                }
-                for r in results
+            {
+                "id": r.get('id') or r.get('doc_id'),
+                "score": round(r.get('score', 0), 4),
+                "proximity_score": round(r.get('proximity_score', 0), 4),
+                "phrase_matched": r.get('phrase_matched', False),
+                "document": {
+                    "title": r.get('title', 'Unknown Title'),
+                    "artist": r.get('artist', 'Unknown Artist'),
+                    "tag": r.get('tag', ''),
+                    "year": r.get('year', ''),
+                    "views": r.get('views', 0),
+                    "features": r.get('features', ''),
+                    "language": r.get('language', ''),
+                    # Manual slice because .short_lyrics() only works on Objects
+                    "lyrics_preview": (r.get('lyrics', '')[:200] + "...") if r.get('lyrics') else ""
+                },
+            }
+            for r in results
             ],
         })
 

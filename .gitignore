@@ -1,3 +1,5 @@
 **/.DS_Store
 song_lyrics.csv
 backend/songs.db
+**/*.db
+**/*.txt

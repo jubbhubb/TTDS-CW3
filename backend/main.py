@@ -18,7 +18,7 @@ def main():
 
     # db_path="songs.db",
 
-    engine = SearchEngine( index_dir_en="search_index_en", index_dir_es="search_index_es")
+    engine = SearchEngine(index_dir_en="search_index_en", index_dir_es="search_index_es")
 
     en_ready = engine.index_en.doc_count > 0
     es_ready = engine.index_es.doc_count > 0

@@ -158,6 +158,7 @@ def build_results(tuples, repository, stop_words) -> list[dict]:
             lyrics = find_lyric_from_position(position, doc, stop_words)
             if lyrics:
                 results.append({
+                    "id": doc_id, 
                     "title": doc.title,
                     "artist": doc.artist,
                     "year": doc.year,
