@@ -19,3 +19,6 @@ search_index_es/
 *.pkl
 *.dat
 *.dir
+
+**/backend/:memory
+:memory
