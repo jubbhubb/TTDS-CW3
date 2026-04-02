@@ -2,38 +2,65 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./
 import { ChevronDown, SlidersHorizontal, X } from "lucide-react";
 import { useState } from "react";
 
+const GENRES: { label: string; value: string }[] = [
+  { label: 'Pop',        value: 'pop' },
+  { label: 'Rock',       value: 'rock' },
+  { label: 'Hip-Hop',    value: 'hip-hop' },
+  { label: 'R&B',        value: 'r-n-b' },
+  { label: 'Country',    value: 'country' },
+  { label: 'Folk',       value: 'folk' },
+  { label: 'Jazz',       value: 'jazz' },
+  { label: 'Metal',      value: 'metal' },
+  { label: 'Electronic', value: 'electronic' },
+  { label: 'Indie',      value: 'indie' },
+  { label: 'Misc',       value: 'misc' },
+];
+
+const POPULARITY_OPTIONS: { label: string; value: number }[] = [
+  { label: 'Any',   value: 0 },
+  { label: '100k+', value: 100_000 },
+  { label: '500k+', value: 500_000 },
+  { label: '1M+',   value: 1_000_000 },
+  { label: '5M+',   value: 5_000_000 },
+  { label: '10M+',  value: 10_000_000 },
+];
+
 interface SearchFiltersProps {
   fromYear?: string;
   toYear?: string;
-  selectedLanguages: string[];
   onYearRangeChange: (from: string, to: string) => void;
-  onLanguageChange: (language: string) => void;
+  selectedGenres: string[];
+  onGenreChange: (genre: string) => void;
+  minViews: number;
+  onMinViewsChange: (value: number) => void;
   onClearAll: () => void;
 }
 
 export function SearchFilters({
   fromYear,
   toYear,
-  selectedLanguages,
   onYearRangeChange,
-  onLanguageChange,
+  selectedGenres,
+  onGenreChange,
+  minViews,
+  onMinViewsChange,
   onClearAll,
 }: SearchFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  
+
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 1900 + 1 }, (_, i) => 1900 + i).reverse();
-  
-  // Filter to year options: only show years >= fromYear if fromYear is selected
-  const toYearOptions = fromYear && fromYear !== '' 
+
+  const toYearOptions = fromYear && fromYear !== ''
     ? years.filter(year => year >= parseInt(fromYear))
     : years;
-  
-  const languages = ['English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Japanese', 'Korean', 'Other'];
-  const hasYearRange = Boolean((fromYear && fromYear.trim() !== '') || (toYear && toYear.trim() !== ''));
-  const hasActiveFilters = hasYearRange || selectedLanguages.length > 0;
 
-  const totalActiveFilters = (hasYearRange ? 1 : 0) + selectedLanguages.length;
+  const hasYearRange = Boolean((fromYear && fromYear.trim() !== '') || (toYear && toYear.trim() !== ''));
+  const hasPopularity = minViews > 0;
+  const hasActiveFilters = hasYearRange || selectedGenres.length > 0 || hasPopularity;
+  const totalActiveFilters = (hasYearRange ? 1 : 0) + selectedGenres.length + (hasPopularity ? 1 : 0);
+
+  const popularityLabel = POPULARITY_OPTIONS.find(o => o.value === minViews)?.label ?? 'Any';
 
   return (
     <div className="w-full">
@@ -70,7 +97,7 @@ export function SearchFilters({
           <div className="flex items-center gap-2 flex-wrap ml-2">
             {hasYearRange && (
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                {`${fromYear ?? ''}${fromYear && toYear ? '-' : ''}${toYear ?? ''}`}
+                {`${fromYear ?? ''}${fromYear && toYear ? '–' : ''}${toYear ?? ''}`}
                 <button
                   onClick={() => onYearRangeChange('', '')}
                   className="hover:bg-green-200 rounded-full p-0.5 transition-colors"
@@ -79,21 +106,31 @@ export function SearchFilters({
                 </button>
               </span>
             )}
-            {selectedLanguages.map((language) => (
-              <span
-                key={language}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full"
-              >
-                {language}
+            {selectedGenres.map((g) => {
+              const genre = GENRES.find(x => x.value === g);
+              return (
+                <span key={g} className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                  {genre?.label ?? g}
+                  <button
+                    onClick={() => onGenreChange(g)}
+                    className="hover:bg-green-200 rounded-full p-0.5 transition-colors"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              );
+            })}
+            {hasPopularity && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                {popularityLabel} views
                 <button
-                  onClick={() => onLanguageChange(language)}
+                  onClick={() => onMinViewsChange(0)}
                   className="hover:bg-green-200 rounded-full p-0.5 transition-colors"
                 >
                   <X className="size-3" />
                 </button>
               </span>
-            ))}
-            {/* moods removed */}
+            )}
           </div>
         )}
       </div>
@@ -102,6 +139,7 @@ export function SearchFilters({
       {isExpanded && (
         <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200 mb-4">
           <Accordion type="multiple" className="w-full">
+
             {/* Year Range Filter */}
             <AccordionItem value="year" className="border-gray-200">
               <AccordionTrigger className="py-3 text-sm font-semibold text-gray-900 hover:no-underline">
@@ -123,9 +161,7 @@ export function SearchFilters({
                     >
                       <option value="">Any</option>
                       {years.map((year) => (
-                        <option key={year} value={year.toString()}>
-                          {year}
-                        </option>
+                        <option key={year} value={year.toString()}>{year}</option>
                       ))}
                     </select>
                   </label>
@@ -138,9 +174,7 @@ export function SearchFilters({
                     >
                       <option value="">Any</option>
                       {toYearOptions.map((year) => (
-                        <option key={year} value={year.toString()}>
-                          {year}
-                        </option>
+                        <option key={year} value={year.toString()}>{year}</option>
                       ))}
                     </select>
                   </label>
@@ -148,34 +182,62 @@ export function SearchFilters({
               </AccordionContent>
             </AccordionItem>
 
-            {/* Language Filter */}
-            <AccordionItem value="language" className="border-gray-200">
+            {/* Genre Filter */}
+            <AccordionItem value="genre" className="border-gray-200">
               <AccordionTrigger className="py-3 text-sm font-semibold text-gray-900 hover:no-underline">
-                Language
-                {selectedLanguages.length > 0 && (
+                Genre
+                {selectedGenres.length > 0 && (
                   <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
-                    {selectedLanguages.length}
+                    {selectedGenres.length}
                   </span>
                 )}
               </AccordionTrigger>
               <AccordionContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {languages.map((language) => (
-                    <label key={language} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
+                  {GENRES.map(({ label, value }) => (
+                    <label key={value} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
                       <input
                         type="checkbox"
-                        checked={selectedLanguages.includes(language)}
-                        onChange={() => onLanguageChange(language)}
+                        checked={selectedGenres.includes(value)}
+                        onChange={() => onGenreChange(value)}
                         className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
                       />
-                      <span className="text-sm text-gray-700">{language}</span>
+                      <span className="text-sm text-gray-700">{label}</span>
                     </label>
                   ))}
                 </div>
               </AccordionContent>
             </AccordionItem>
 
-            {/* Mood filter removed */}
+            {/* Popularity Filter */}
+            <AccordionItem value="popularity" className="border-gray-200">
+              <AccordionTrigger className="py-3 text-sm font-semibold text-gray-900 hover:no-underline">
+                Popularity
+                {hasPopularity && (
+                  <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                    1
+                  </span>
+                )}
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {POPULARITY_OPTIONS.map(({ label, value }) => (
+                    <button
+                      key={value}
+                      onClick={() => onMinViewsChange(value)}
+                      className={`px-4 py-2 text-sm rounded-full border font-medium transition-colors ${
+                        minViews === value
+                          ? 'bg-green-600 text-white border-green-600'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-green-400 hover:text-green-700'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
           </Accordion>
         </div>
       )}

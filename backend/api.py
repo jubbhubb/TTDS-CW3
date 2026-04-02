@@ -152,6 +152,8 @@ def create_app(
                 "snippet": r.get('lyric_snippet', ''),
                 "year": str(r.get('year', '')),
                 "language": r.get('language', ''),
+                "tag": r.get('tag', ''),
+                "views": r.get('views') or 0,
                 
                 # --- DOCUMENT LEVEL (Keep this for the Song Detail page) ---
                 "document": {

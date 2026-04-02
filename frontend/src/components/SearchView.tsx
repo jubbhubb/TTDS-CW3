@@ -11,6 +11,8 @@ interface Song {
   snippet: string;
   year?: string;
   language?: string;
+  tag?: string;
+  views?: number;
   imageUrl?: string;
 }
 
@@ -24,24 +26,12 @@ interface SearchViewProps {
 }
 
 export function SearchView({ songs, searchQuery, searchLanguage, onSearchChange, onBackToSearch, onSongSelect }: SearchViewProps) {
-  const languageMap: Record<string, string> = {
-    english: 'en',
-    spanish: 'es',
-    french: 'fr',
-    german: 'de',
-    italian: 'it',
-    portuguese: 'pt',
-    japanese: 'ja',
-    korean: 'ko',
-    other: 'other',
-  };
-  const knownLanguageCodes = new Set(['en', 'es', 'fr', 'de', 'it', 'pt', 'ja', 'ko']);
-
   const [query, setQuery] = useState(searchQuery);
   const [language, setLanguage] = useState<'en' | 'es'>(searchLanguage);
   const [fromYear, setFromYear] = useState<string>('');
   const [toYear, setToYear] = useState<string>('');
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [minViews, setMinViews] = useState<number>(0);
 
   useEffect(() => {
     setQuery(searchQuery);
@@ -56,18 +46,17 @@ export function SearchView({ songs, searchQuery, searchLanguage, onSearchChange,
     setToYear(to);
   };
 
-  const handleLanguageChange = (language: string) => {
-    setSelectedLanguages(prev =>
-      prev.includes(language)
-        ? prev.filter(l => l !== language)
-        : [...prev, language]
+  const handleGenreChange = (genre: string) => {
+    setSelectedGenres(prev =>
+      prev.includes(genre) ? prev.filter(g => g !== genre) : [...prev, genre]
     );
   };
 
   const handleClearAll = () => {
     setFromYear('');
     setToYear('');
-    setSelectedLanguages([]);
+    setSelectedGenres([]);
+    setMinViews(0);
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -87,49 +76,30 @@ export function SearchView({ songs, searchQuery, searchLanguage, onSearchChange,
   const filteredResults = useMemo(() => {
     const minYear = parseYear(fromYear);
     const maxYear = parseYear(toYear);
-    const selectedLanguageCodes = selectedLanguages.map((label) => {
-      const key = label.trim().toLowerCase();
-      return languageMap[key] ?? key;
-    });
-    const includeOther = selectedLanguageCodes.includes('other');
-    const chosenKnownCodes = selectedLanguageCodes.filter((code) => code !== 'other');
 
     return songs.filter((song) => {
+      // Year range filter
       const songYear = parseYear(song.year);
       if (minYear !== undefined || maxYear !== undefined) {
-        if (songYear === undefined) {
-          return false;
-        }
-
-        if (minYear !== undefined && songYear < minYear) {
-          return false;
-        }
-
-        if (maxYear !== undefined && songYear > maxYear) {
-          return false;
-        }
+        if (songYear === undefined) return false;
+        if (minYear !== undefined && songYear < minYear) return false;
+        if (maxYear !== undefined && songYear > maxYear) return false;
       }
 
-      if (selectedLanguageCodes.length > 0) {
-        const songLanguage = song.language?.trim().toLowerCase();
-        if (!songLanguage) {
-          return false;
-        }
+      // Genre filter
+      if (selectedGenres.length > 0) {
+        const songTag = (song.tag ?? '').trim().toLowerCase();
+        if (!selectedGenres.includes(songTag)) return false;
+      }
 
-        if (chosenKnownCodes.includes(songLanguage)) {
-          return true;
-        }
-
-        if (includeOther && !knownLanguageCodes.has(songLanguage)) {
-          return true;
-        }
-
-        return false;
+      // Popularity filter
+      if (minViews > 0) {
+        if ((song.views ?? 0) < minViews) return false;
       }
 
       return true;
     });
-  }, [songs, fromYear, toYear, selectedLanguages]);
+  }, [songs, fromYear, toYear, selectedGenres, minViews]);
 
   return (
     <div className="min-h-screen bg-green-50">
@@ -188,9 +158,11 @@ export function SearchView({ songs, searchQuery, searchLanguage, onSearchChange,
           <SearchFilters
             fromYear={fromYear}
             toYear={toYear}
-            selectedLanguages={selectedLanguages}
             onYearRangeChange={handleYearRangeChange}
-            onLanguageChange={handleLanguageChange}
+            selectedGenres={selectedGenres}
+            onGenreChange={handleGenreChange}
+            minViews={minViews}
+            onMinViewsChange={setMinViews}
             onClearAll={handleClearAll}
           />
         </div>
