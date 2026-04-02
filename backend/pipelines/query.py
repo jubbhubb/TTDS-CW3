@@ -407,9 +407,6 @@ class QueryPipeline:
         T['3_candidate_ids_bulk'] = (time.perf_counter() - t) * 1000; t = time.perf_counter()
         debug.dprint(f"  [T] candidate_ids_bulk: {T['3_candidate_ids_bulk']:.1f}ms | {len(doc_match_count)} docs above min_matches", level=1)
 
-
-
-
         if phoneme_lookup and doc_match_count:
             sample_phoneme_key = next(iter(phoneme_lookup))
             sample_tier_key = next(iter(doc_match_count))
@@ -922,7 +919,7 @@ class QueryPipeline:
 
         # 3. Candidate filtering via Database
         t = time.perf_counter()
-        candidate_query = self.index.get_trigrams(threshold, query_trigrams)
+        candidate_query = self.repository.get_trigrams(threshold, query_trigrams)
         candidates = [row.document_id for row in candidate_query]
         debug.dprint(f"  [PHONEME] get_trigrams: {(time.perf_counter() - t)*1000:.1f}ms | {len(candidates)} candidates", level=1)
 
@@ -932,7 +929,7 @@ class QueryPipeline:
 
         # 4. Fetch Phoneme Sequences
         t = time.perf_counter()
-        phoneme_data = self.index.get_phoneme_data(candidates)
+        phoneme_data = self.repository.get_phoneme_data(candidates)
         candidate_sequences = {row.document_id: list(row.phonemes) for row in phoneme_data}
         debug.dprint(f"  [PHONEME] get_phoneme_data: {(time.perf_counter() - t)*1000:.1f}ms | {len(candidate_sequences)} sequences", level=1)
 

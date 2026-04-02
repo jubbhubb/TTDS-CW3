@@ -3,3 +3,19 @@ song_lyrics.csv
 backend/songs.db
 **/*.db
 **/*.txt
+
+# Secrets
+.env
+
+# Python junk
+__pycache__/
+*.pyc
+
+# Search Index / Data
+search_index_en/
+search_index_es/
+*.db-shm
+*.db-wal
+*.pkl
+*.dat
+*.dir

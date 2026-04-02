@@ -4,10 +4,11 @@ import threading
 import urllib.parse
 from pathlib import Path
 
-from sqlalchemy import create_engine, select, func, or_, delete
+from sqlalchemy import create_engine, select, func, or_, delete, text
 from sqlalchemy.orm import sessionmaker, Session, scoped_session
 
 from core.models import Base, Document
+from core.phonemes import PhonemeDocument, PhonemeTrigram
 
 
 class DocumentRepository:
@@ -481,28 +482,30 @@ class DocumentRepository:
             return all_results
         finally:
             session.close()
-    # def get_trigrams(self, threshold: int, query_trigrams):
-    #     print(f"Filtering candidates from database (Threshold: {threshold})...")
-    #     sessionMethod = self._Session()
-    #
-    #
-    #     candidate_query = (
-    #         sessionMethod.query(
-    #             PhonemeTrigram.document_id,
-    #             func.count(PhonemeTrigram.document_id).label('overlap_count')
-    #         )
-    #         .filter(PhonemeTrigram.trigram_id.in_(query_trigrams))
-    #         .group_by(PhonemeTrigram.document_id)
-    #         .having(func.count(PhonemeTrigram.document_id) >= threshold)
-    #         .order_by(text('overlap_count DESC'))
-    #         .limit(1000) # Safety cap to prevent scoring too many results
-    #     ).all()
-    #     return candidate_query
-    # def get_phoneme_data(self, candidates: list) :
-    #     sessionMethod = self._Session()
-    #     phoneme_data = (
-    #         sessionMethod.query(PhonemeDocument.document_id, PhonemeDocument.phonemes)
-    #         .filter(PhonemeDocument.document_id.in_(candidates))
-    #         .all()
-    #     )
-    #     return phoneme_data
+
+    def get_trigrams(self, threshold: int, query_trigrams):
+        print(f"Filtering candidates from database (Threshold: {threshold})...")
+        sessionMethod = self._Session()
+    
+    
+        candidate_query = (
+            sessionMethod.query(
+                PhonemeTrigram.document_id,
+                func.count(PhonemeTrigram.document_id).label('overlap_count')
+            )
+            .filter(PhonemeTrigram.trigram_id.in_(query_trigrams))
+            .group_by(PhonemeTrigram.document_id)
+            .having(func.count(PhonemeTrigram.document_id) >= threshold)
+            .order_by(text('overlap_count DESC'))
+            .limit(1000) # Safety cap to prevent scoring too many results
+        ).all()
+        return candidate_query
+    
+    def get_phoneme_data(self, candidates: list) :
+        sessionMethod = self._Session()
+        phoneme_data = (
+            sessionMethod.query(PhonemeDocument.document_id, PhonemeDocument.phonemes)
+            .filter(PhonemeDocument.document_id.in_(candidates))
+            .all()
+        )
+        return phoneme_data

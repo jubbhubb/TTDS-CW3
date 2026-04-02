@@ -221,7 +221,7 @@ def build_results(tuples, repository, stop_words) -> list[dict]:
             continue
         doc = repository.get(doc_id)
         if doc:
-            if getattr(doc, 'language', None) is 'es':
+            if getattr(doc, 'language', None) == 'es':
                 print(f"[DEBUG] Document ID {doc_id} is in Spanish. Using Spanish stop words.")
                 use_spanish = True
             else:
