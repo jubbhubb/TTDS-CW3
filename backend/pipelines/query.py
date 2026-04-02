@@ -356,10 +356,10 @@ class QueryPipeline:
             max_phoneme = max(phoneme_lookup.values()) if phoneme_lookup else 1.0
             if max_phoneme == 0:
                 max_phoneme = 1.0
-            debug.dprint(f"  [T] phoneme search: {len(phoneme_results)} docs in {(time.perf_counter() - start_time)*1000:.1f}ms", level=2)
-            debug.dprint(f"  [T] max_phoneme: {max_phoneme}", level=2)
+            print(f"  [T] phoneme search: {len(phoneme_results)} docs in {(time.perf_counter() - start_time)*1000:.1f}ms")
+            print(f"  [T] max_phoneme: {max_phoneme}")
         except Exception as e:
-            debug.dprint(f"  [T] phoneme search failed: {e}", level=1)
+            print(f"  [T] phoneme search failed: {e}")
             phoneme_lookup = {}
             max_phoneme = 1.0
         T['2_phoneme'] = (time.perf_counter() - t) * 1000; t = time.perf_counter()

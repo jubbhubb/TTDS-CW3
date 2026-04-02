@@ -1,4 +1,4 @@
-DEBUG_LEVEL = 0
+DEBUG_LEVEL = 4
 
 def dprint(*args, level=1, **kwargs):
     if DEBUG_LEVEL >= level:

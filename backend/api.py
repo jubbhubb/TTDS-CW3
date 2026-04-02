@@ -145,21 +145,25 @@ def create_app(
             "search_time_ms": round(search_time_ms, 2),
             "hits": [
             {
-                "id": r.get('id') or r.get('doc_id'),
-                "score": round(r.get('score', 0), 4),
-                "proximity_score": round(r.get('proximity_score', 0), 4),
-                "phrase_matched": r.get('phrase_matched', False),
+                # --- TOP LEVEL (React expects these here!) ---
+                "id": str(r.get('id')),
+                "title": r.get('title', 'Unknown Title'),
+                "artist": r.get('artist', 'Unknown Artist'),
+                "snippet": r.get('lyric_snippet', ''),
+                "year": str(r.get('year', '')),
+                "language": r.get('language', ''),
+                
+                # --- DOCUMENT LEVEL (Keep this for the Song Detail page) ---
                 "document": {
-                    "title": r.get('title', 'Unknown Title'),
-                    "artist": r.get('artist', 'Unknown Artist'),
+                    "title": r.get('title'),
+                    "artist": r.get('artist'),
+                    "year": r.get('year'),
+                    "snippet": r.get('lyric_snippet', ''),
                     "tag": r.get('tag', ''),
-                    "year": r.get('year', ''),
                     "views": r.get('views', 0),
                     "features": r.get('features', ''),
-                    "language": r.get('language', ''),
-                    # Manual slice because .short_lyrics() only works on Objects
-                    "lyrics_preview": (r.get('lyrics', '')[:200] + "...") if r.get('lyrics') else ""
                 },
+                "score": round(r.get('score', 0), 4),
             }
             for r in results
             ],

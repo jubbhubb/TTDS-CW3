@@ -37,7 +37,7 @@ export function SearchResult({ id, title, author, snippet, year, imageUrl, onSon
         <p className="text-sm text-gray-600 mb-3">
           by <span className="font-medium text-gray-800">{author}</span> {year && `• ${year}`}
         </p>
-        <p className="text-sm text-gray-700 leading-relaxed mb-3 line-clamp-3">
+        <p className="text-sm text-gray-700 leading-relaxed mb-3 whitespace-pre-wrap">
           {snippet}
         </p>
         <span className="inline-flex items-center text-sm font-medium text-green-600 group-hover:text-green-700 transition-colors">

@@ -1,9 +1,7 @@
 
 import re
 from num2words import num2words
-
-
-
+from core.tokenizer import Tokenizer
 
 
 def split_and_normalise( token, isSpanish : bool = False):
@@ -71,14 +69,78 @@ def split_and_normalise( token, isSpanish : bool = False):
     return token
 
 
-def find_lyric_from_position(position, document, stop_words, use_normalize=True) -> str | None:
+def find_lyric_from_position(position: int, document, tokenizer, use_normalize: bool = True, for_spanish: bool = False) -> str | None:
+    """
+    Finds the lyric snippet by mimicking the IngestionPipeline's tokenization.
+    
+    :param position: The word index from the search result.
+    :param document: The document object (must have .title and .content).
+    :param tokenizer: The same Tokenizer instance used in IngestionPipeline.
+    :param for_spanish: Boolean indicating if Spanish rules should apply.
+    """
+    word_counter = 0
+    
+    # 1. Mirror the IngestionPipeline construction: Title + Content
+    # We treat the title as the first "line".
+    title = getattr(document, 'title', '')
+    lyrics = getattr(document, 'content', '')
+    
+    # Create the line list (Title is index 0)
+    lines = [title] + lyrics.split('\n')
+
+    for index, line in enumerate(lines):
+        # 2. Use the ACTUAL tokenizer to count words in this line.
+        # This automatically handles stop words, punctuation, and [Metadata] 
+        # exactly the same way the search index did.
+        line_tokens = tokenizer.tokenize(line, for_spanish=for_spanish)
+        line_word_count = len(line_tokens)
+
+        # 3. Check if the target position falls within this line
+        if word_counter <= position < word_counter + line_word_count:
+            
+            # --- Found the line! Now gather context (Previous, Current, Next) ---
+            
+            # Identify the range for the snippet
+            # We look for the closest lines that actually contain text
+            
+            current_line = lines[index]
+            
+            # Find the first non-empty line above
+            prev_line = ""
+            for i in range(index - 1, -1, -1):
+                if lines[i].strip():
+                    prev_line = lines[i]
+                    break
+            
+            # Find the first non-empty line below
+            next_line = ""
+            for i in range(index + 1, len(lines)):
+                if lines[i].strip():
+                    next_line = lines[i]
+                    break
+
+            # Combine and return (filtering out empty context if at start/end)
+            snippet = [l.strip() for l in [prev_line, current_line, next_line] if l.strip()]
+            return '\n'.join(snippet)
+
+        # 4. Increment the counter by the number of tokens found in this line
+        word_counter += line_word_count
+
+    return None
+
+# def find_lyric_from_position(position, document, stop_words, use_normalize=True) -> str | None:
     '''
     Given a document and a word position, find the lyric snippet.
     Ignores empty lines and metadata lines like [Chorus].
     '''
     word_counter = 0
+    title = getattr(document, 'title', '') 
+    
+
     lyrics = document.content
-    lines = lyrics.split('\n')
+    print(f"[DEBUG] Finding lyric snippet for position {position} in document ID {document.id}")
+    print(f"[DEBUG] Document content starts with: {lyrics[:100]}...")  # Show the start of the lyrics for context
+    lines = [title] + lyrics.split('\n')
 
     def is_valid_content(l):
         """Returns True if the line is actual lyric text."""
@@ -116,6 +178,9 @@ def find_lyric_from_position(position, document, stop_words, use_normalize=True)
 
         line_word_count = len(words_in_line)
 
+        print(f"[DEBUG] Line {index}: '{line}' has {line_word_count} valid words. Word counter: {word_counter}")
+        print(f"[DEBUG] Words in line: {words_in_line}")
+
         # Check if target 'position' is within this specific line
         if word_counter <= position < word_counter + line_word_count:
             # Found the line! Now find the context around it.
@@ -150,19 +215,32 @@ def build_results(tuples, repository, stop_words) -> list[dict]:
     print("[DEBUG] Building results from tuples:", tuples)
     results = []
     for (doc_id, position) in tuples:
+        print(f"[DEBUG] Processing doc_id: {doc_id}, position: {position}")
         if position is None:
             print(f"Position is None for doc_id {doc_id}, skipping lyric snippet extraction.")
             continue
         doc = repository.get(doc_id)
         if doc:
-            lyrics = find_lyric_from_position(position, doc, stop_words)
+            if getattr(doc, 'language', None) is 'es':
+                print(f"[DEBUG] Document ID {doc_id} is in Spanish. Using Spanish stop words.")
+                use_spanish = True
+            else:
+                print(f"[DEBUG] Document ID {doc_id} is in English. Using English stop words.")
+                use_spanish = False
+                tokenizer = Tokenizer()  
+            lyrics = find_lyric_from_position(position, doc, tokenizer, use_normalize=True, for_spanish=use_spanish)
+            print(f"[DEBUG] Found lyric snippet for doc_id {doc_id}: {lyrics}")
             if lyrics:
                 results.append({
-                    "id": doc_id, 
+                    "id": doc_id,                
                     "title": doc.title,
                     "artist": doc.artist,
                     "year": doc.year,
-                    "lyric_snippet": lyrics
+                    "lyric_snippet": lyrics,     
+                    "tag": getattr(doc, 'tag', ''),
+                    "views": getattr(doc, 'views', 0),
+                    "features": getattr(doc, 'features', ''),
+                    "language": getattr(doc, 'language', '')
                 })
             else:
                 print(f"Lyric snippet not found in song ID {doc_id}.")

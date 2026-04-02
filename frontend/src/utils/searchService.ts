@@ -52,7 +52,7 @@ export async function searchQuery(query: string, language: 'en' | 'es' = 'en'): 
             artist: item.document?.artist ?? 'Unknown Artist',
             year: item.document?.year?.toString(),
             language: item.document?.language?.toString(),
-            snippet: item.document?.lyrics_preview ?? '',
+            snippet: item.document?.snippet ?? '',
             score: item.score,
             views: item.document?.views
         }));
