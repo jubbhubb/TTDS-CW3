@@ -220,6 +220,7 @@ def build_results(tuples, repository, stop_words) -> list[dict]:
             print(f"Position is None for doc_id {doc_id}, skipping lyric snippet extraction.")
             continue
         doc = repository.get(doc_id)
+        tokenizer = Tokenizer()
         if doc:
             if getattr(doc, 'language', None) == 'es':
                 print(f"[DEBUG] Document ID {doc_id} is in Spanish. Using Spanish stop words.")
@@ -227,7 +228,7 @@ def build_results(tuples, repository, stop_words) -> list[dict]:
             else:
                 print(f"[DEBUG] Document ID {doc_id} is in English. Using English stop words.")
                 use_spanish = False
-                tokenizer = Tokenizer()  
+
             lyrics = find_lyric_from_position(position, doc, tokenizer, use_normalize=True, for_spanish=use_spanish)
             print(f"[DEBUG] Found lyric snippet for doc_id {doc_id}: {lyrics}")
             if lyrics:

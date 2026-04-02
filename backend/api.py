@@ -125,7 +125,7 @@ def create_app(
 
         filters = {}
         if query_language == "es":
-            filters["is_Spanish"] = True
+            filters["isSpanish"] = True
         if filter_language:
             filters["filter_language"] = filter_language
         if request.args.get("artist"):
