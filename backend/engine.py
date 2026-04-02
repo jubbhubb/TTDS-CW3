@@ -46,7 +46,7 @@ class SearchEngine:
             print(f" Found saved English index at {os.path.abspath(self.index_dir_en)}")
             self.index_en = PositionalIndex.load(self.index_dir_en, self.tokenizer)
             self.index_en.ensure_docid_cache()
-            self.index_en.warm_cache(top_n=50)
+            self.index_en.warm_cache(top_n=3)
         else:
             self.index_en = PositionalIndex(self.tokenizer)
 
@@ -54,7 +54,7 @@ class SearchEngine:
             print(f" Found saved Spanish index at {os.path.abspath(self.index_dir_es)}")
             self.index_es = PositionalIndex.load(self.index_dir_es, self.tokenizer)
             self.index_es.ensure_docid_cache()
-            self.index_es.warm_cache(top_n=50)
+            self.index_es.warm_cache(top_n=3)
         else:
             self.index_es = PositionalIndex(self.tokenizer)
 
