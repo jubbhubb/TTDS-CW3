@@ -31,7 +31,7 @@ export function SearchView({ songs, searchQuery, searchLanguage, onSearchChange,
   const [fromYear, setFromYear] = useState<string>('');
   const [toYear, setToYear] = useState<string>('');
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [minViews, setMinViews] = useState<number>(0);
+  const [viewsSort, setViewsSort] = useState<'none' | 'high' | 'low'>('none');
 
   useEffect(() => {
     setQuery(searchQuery);
@@ -56,7 +56,7 @@ export function SearchView({ songs, searchQuery, searchLanguage, onSearchChange,
     setFromYear('');
     setToYear('');
     setSelectedGenres([]);
-    setMinViews(0);
+    setViewsSort('none');
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -102,14 +102,13 @@ export function SearchView({ songs, searchQuery, searchLanguage, onSearchChange,
         if (!selectedGenres.includes(songTag)) return false;
       }
 
-      // Popularity filter
-      if (minViews > 0) {
-        if ((song.views ?? 0) < minViews) return false;
-      }
-
       return true;
+    }).sort((a, b) => {
+      if (viewsSort === 'high') return (b.views ?? 0) - (a.views ?? 0);
+      if (viewsSort === 'low') return (a.views ?? 0) - (b.views ?? 0);
+      return 0;
     });
-  }, [songs, fromYear, toYear, selectedGenres, minViews]);
+  }, [songs, fromYear, toYear, selectedGenres, viewsSort]);
 
   return (
     <div className="min-h-screen bg-green-50">
@@ -171,8 +170,8 @@ export function SearchView({ songs, searchQuery, searchLanguage, onSearchChange,
             onYearRangeChange={handleYearRangeChange}
             selectedGenres={selectedGenres}
             onGenreChange={handleGenreChange}
-            minViews={minViews}
-            onMinViewsChange={setMinViews}
+            viewsSort={viewsSort}
+            onViewsSortChange={setViewsSort}
             onClearAll={handleClearAll}
           />
         </div>

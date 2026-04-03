@@ -1,5 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
-import { ChevronDown, SlidersHorizontal, X } from "lucide-react";
+import { ChevronDown, SlidersHorizontal, X, ArrowUpDown } from "lucide-react";
 import { useState } from "react";
 
 const GENRES: { label: string; value: string }[] = [
@@ -11,14 +11,6 @@ const GENRES: { label: string; value: string }[] = [
   { label: 'Country', value: 'country' },
 ];
 
-const POPULARITY_OPTIONS: { label: string; value: number }[] = [
-  { label: 'Any',   value: 0 },
-  { label: '100k+', value: 100_000 },
-  { label: '500k+', value: 500_000 },
-  { label: '1M+',   value: 1_000_000 },
-  { label: '5M+',   value: 5_000_000 },
-  { label: '10M+',  value: 10_000_000 },
-];
 
 interface SearchFiltersProps {
   fromYear?: string;
@@ -26,8 +18,8 @@ interface SearchFiltersProps {
   onYearRangeChange: (from: string, to: string) => void;
   selectedGenres: string[];
   onGenreChange: (genre: string) => void;
-  minViews: number;
-  onMinViewsChange: (value: number) => void;
+  viewsSort: 'none' | 'high' | 'low';
+  onViewsSortChange: (sort: 'none' | 'high' | 'low') => void;
   onClearAll: () => void;
 }
 
@@ -37,8 +29,8 @@ export function SearchFilters({
   onYearRangeChange,
   selectedGenres,
   onGenreChange,
-  minViews,
-  onMinViewsChange,
+  viewsSort,
+  onViewsSortChange,
   onClearAll,
 }: SearchFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -51,11 +43,9 @@ export function SearchFilters({
     : years;
 
   const hasYearRange = Boolean((fromYear && fromYear.trim() !== '') || (toYear && toYear.trim() !== ''));
-  const hasPopularity = minViews > 0;
-  const hasActiveFilters = hasYearRange || selectedGenres.length > 0 || hasPopularity;
-  const totalActiveFilters = (hasYearRange ? 1 : 0) + selectedGenres.length + (hasPopularity ? 1 : 0);
-
-  const popularityLabel = POPULARITY_OPTIONS.find(o => o.value === minViews)?.label ?? 'Any';
+  const hasSorting = viewsSort !== 'none';
+  const hasActiveFilters = hasYearRange || selectedGenres.length > 0 || hasSorting;
+  const totalActiveFilters = (hasYearRange ? 1 : 0) + selectedGenres.length + (hasSorting ? 1 : 0);
 
   return (
     <div className="w-full">
@@ -115,11 +105,11 @@ export function SearchFilters({
                 </span>
               );
             })}
-            {hasPopularity && (
+            {hasSorting && (
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                {popularityLabel} views
+                {viewsSort === 'high' ? 'Most popular first' : 'Least popular first'}
                 <button
-                  onClick={() => onMinViewsChange(0)}
+                  onClick={() => onViewsSortChange('none')}
                   className="hover:bg-green-200 rounded-full p-0.5 transition-colors"
                 >
                   <X className="size-3" />
@@ -204,31 +194,40 @@ export function SearchFilters({
               </AccordionContent>
             </AccordionItem>
 
-            {/* Popularity Filter */}
+            {/* Sort by Views */}
             <AccordionItem value="popularity" className="border-gray-200">
               <AccordionTrigger className="py-3 text-sm font-semibold text-gray-900 hover:no-underline">
-                Popularity
-                {hasPopularity && (
+                Sort by popularity
+                {hasSorting && (
                   <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
                     1
                   </span>
                 )}
               </AccordionTrigger>
               <AccordionContent>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {POPULARITY_OPTIONS.map(({ label, value }) => (
-                    <button
-                      key={value}
-                      onClick={() => onMinViewsChange(value)}
-                      className={`px-4 py-2 text-sm rounded-full border font-medium transition-colors ${
-                        minViews === value
-                          ? 'bg-green-600 text-white border-green-600'
-                          : 'bg-white text-gray-700 border-gray-300 hover:border-green-400 hover:text-green-700'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={() => onViewsSortChange(viewsSort === 'high' ? 'none' : 'high')}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm rounded-full border font-medium transition-colors ${
+                      viewsSort === 'high'
+                        ? 'bg-green-600 text-white border-green-600'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-green-400 hover:text-green-700'
+                    }`}
+                  >
+                    <ArrowUpDown className="size-3" />
+                    Most popular first
+                  </button>
+                  <button
+                    onClick={() => onViewsSortChange(viewsSort === 'low' ? 'none' : 'low')}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm rounded-full border font-medium transition-colors ${
+                      viewsSort === 'low'
+                        ? 'bg-green-600 text-white border-green-600'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-green-400 hover:text-green-700'
+                    }`}
+                  >
+                    <ArrowUpDown className="size-3" />
+                    Least popular first
+                  </button>
                 </div>
               </AccordionContent>
             </AccordionItem>
