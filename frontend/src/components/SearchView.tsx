@@ -78,14 +78,6 @@ export function SearchView({ songs, searchQuery, searchLanguage, onSearchChange,
     const maxYear = parseYear(toYear);
 
     // Debug: log raw values for first few songs so we can see what tag/views look like
-    if (songs.length > 0) {
-      console.log('[FILTER_DEBUG] Sample songs (tag, views):', songs.slice(0, 5).map(s => ({
-        title: s.title,
-        tag: s.tag,
-        views: s.views,
-      })));
-      console.log('[FILTER_DEBUG] Active filters — genres:', selectedGenres, '| minViews:', minViews);
-    }
 
     return songs.filter((song) => {
       // Year range filter
@@ -178,7 +170,7 @@ export function SearchView({ songs, searchQuery, searchLanguage, onSearchChange,
 
         {/* Results Count */}
         <p className="text-sm text-gray-600 mb-4">
-          Found {filteredResults.length} results (0.{Math.floor(Math.random() * 90) + 10} seconds)
+          Found {filteredResults.length} results
         </p>
 
         {/* Results List */}
