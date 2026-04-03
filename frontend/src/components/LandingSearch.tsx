@@ -25,7 +25,7 @@ export function LandingSearch({ onSearch }: LandingSearchProps) {
             Lyric Search
           </h1>
           <p className="text-xl text-gray-600">
-            Search for songs by title, artist, or lyrics
+            Search for songs by title or lyric snippet
           </p>
         </div>
 

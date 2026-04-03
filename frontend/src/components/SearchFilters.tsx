@@ -3,17 +3,12 @@ import { ChevronDown, SlidersHorizontal, X } from "lucide-react";
 import { useState } from "react";
 
 const GENRES: { label: string; value: string }[] = [
-  { label: 'Pop',        value: 'pop' },
-  { label: 'Rock',       value: 'rock' },
-  { label: 'Hip-Hop',    value: 'hip-hop' },
-  { label: 'R&B',        value: 'r-n-b' },
-  { label: 'Country',    value: 'country' },
-  { label: 'Folk',       value: 'folk' },
-  { label: 'Jazz',       value: 'jazz' },
-  { label: 'Metal',      value: 'metal' },
-  { label: 'Electronic', value: 'electronic' },
-  { label: 'Indie',      value: 'indie' },
-  { label: 'Misc',       value: 'misc' },
+  { label: 'Pop',     value: 'pop' },
+  { label: 'Rap',     value: 'rap' },
+  { label: 'Rock',    value: 'rock' },
+  { label: 'R&B',     value: 'rb' },
+  { label: 'Misc',    value: 'misc' },
+  { label: 'Country', value: 'country' },
 ];
 
 const POPULARITY_OPTIONS: { label: string; value: number }[] = [
