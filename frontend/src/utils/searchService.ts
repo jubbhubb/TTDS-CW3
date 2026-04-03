@@ -9,6 +9,7 @@ export interface SearchResult {
     snippet?: string;
     score?: number;
     views?: number;
+    tag?: string;
 }
 
 export interface SongDetail extends SearchResult {
@@ -54,7 +55,8 @@ export async function searchQuery(query: string, language: 'en' | 'es' = 'en'): 
             language: item.document?.language?.toString(),
             snippet: item.document?.snippet ?? '',
             score: item.score,
-            views: item.document?.views
+            views: item.document?.views,
+            tag: item.document?.tag,
         }));
     } catch (error) {
         console.error('Search error:', error);
