@@ -232,14 +232,17 @@ def build_results(tuples, repository, stop_words) -> list[dict]:
             lyrics = find_lyric_from_position(position, doc, tokenizer, use_normalize=True, for_spanish=use_spanish)
             print(f"[DEBUG] Found lyric snippet for doc_id {doc_id}: {lyrics}")
             if lyrics:
+                tag_val = getattr(doc, 'tag', '')
+                views_val = getattr(doc, 'views', 0)
+                print(f"[FILTER_DEBUG] doc_id={doc_id} title={doc.title!r} tag={tag_val!r} views={views_val!r}")
                 results.append({
-                    "id": doc_id,                
+                    "id": doc_id,
                     "title": doc.title,
                     "artist": doc.artist,
                     "year": doc.year,
-                    "lyric_snippet": lyrics,     
-                    "tag": getattr(doc, 'tag', ''),
-                    "views": getattr(doc, 'views', 0),
+                    "lyric_snippet": lyrics,
+                    "tag": tag_val,
+                    "views": views_val,
                     "features": getattr(doc, 'features', ''),
                     "language": getattr(doc, 'language', '')
                 })
