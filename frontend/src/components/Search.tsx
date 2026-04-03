@@ -11,6 +11,8 @@ interface Song {
     snippet: string;
     year?: string;
     language?: string;
+    tag?: string;
+    views?: number;
     imageUrl?: string;
 }
 
@@ -41,6 +43,8 @@ const Search: React.FC = () => {
                 snippet: result.snippet ?? '',
                 year: result.year,
                 language: result.language,
+                tag: result.tag,
+                views: result.views,
                 imageUrl: undefined
             }));
             setSongs(transformedData);
